@@ -7,7 +7,7 @@ require 'sanitize'
 
 atom_urls = { "#channel_name" => ['http://redmine_atom_url', 'https://hooks.slack.com/services/your_slack_webhook']}
 
-lastupdate = Time.now-60
+lastupdate = Time.now-59
 
 class Webhook
   attr_reader :feed
@@ -28,12 +28,12 @@ class Webhook
   end
   
   def post_updates(since=Time.now-86400, channel, webhook)
-    @feed.entries.each do |entry|
+    @feed.entries.reverse.each do |entry|
       if entry.updated.content >= since
         color = colorize(entry)
         attachment = [{"author_name" => entry.author.name.content, "title" => entry.title.content, "title_link" => entry.id.content, "text" => Sanitize.clean(entry.content.content).strip.gsub(/\n|\t/,""), "color" => color}]
         payload = {"channel" => channel, "username" => "Redmine", "text" => "Redmine Activity", "icon_emoji" => ":redmine:", "attachments" => attachment}
-        `curl -X POST --data-urlencode 'payload=#{payload.to_json}' https://hooks.slack.com/services/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`
+        `curl -X POST --data-urlencode 'payload=#{payload.to_json}' #{webhook}`
         puts payload.to_json
       end
     end
